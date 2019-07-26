@@ -1,0 +1,6 @@
+[submodule "scripts"]
+	path = scripts
+	url = git@github.com:bokov/ut-template
+[submodule "course_notes"]
+	path = course_notes
+	url = git@github.com:bokov/TSCI-5050-Course-Notes
