@@ -1,7 +1,7 @@
 #' ---
-#' title: "TITLE"
-#' author: "AUTHOR"
-#' date: "09/08/2019"
+#' title: "Data Characterization"
+#' author: "Noel A. Vega"
+#' date: "09/30/2019"
 #' ---
 #' 
 #+ message=F,echo=F
@@ -15,7 +15,7 @@ debug <- 0;
 
 # vector of additional packages to install, if needed. If none needed, should be
 # an empty string
-.packages <- c( '' );
+packages <- c('GGally','tableone','pander');
 
 # name of this script
 .currentscript <- "data_characterization.R"; 
@@ -29,7 +29,7 @@ debug <- 0;
 if(debug>0) source('./scripts/global.R',chdir=T) else {
   .junk<-capture.output(source('./scripts/global.R',chdir=T,echo=F))};
 # load any additional packages needed by just this script
-if(length(.packages) > 1 || .packages != '') instrequire(.packages);
+if(length(packages) > 1 || !identical(packages,'')) instrequire(packages);
 # start logging
 tself(scriptname=.currentscript);
 
@@ -51,6 +51,28 @@ tself(scriptname=.currentscript);
 #' Quality control, descriptive statistics, etc.
 
 #+ echo=F
+map0 <- autoread ('varmap.csv');
+dct0$column <- make.unique(unlist(submulti(dct0$column,map0,method = 'startsends')));
+names(dat00) <- dct0$column;
+set.seed(project_seed);
+#' 
+#' * Q: What does the command `nrow()` do?
+#'     * A: 
+#'          
+#'          
+#' * Q: What does the command `sample()` do? What are its first and second
+#'      arguments for?
+#'     * A: 
+#'          
+#'          
+#' * Q: If `foo` were a data frame, what might the expression `foo[bar,baz]` do,
+#'      what are the roles of `bar` and `baz` in that expression, and what would
+#'      it mean if you left either of them out of the expression?
+#'     * A: 
+#'          
+#'          
+#' 
+dat01 <- dat00[sample(nrow(dat00), nrow(dat00)/2),];
 # characterization ----
 set.caption('Data Dictionary');
 set.alignment(row.names='right')
@@ -65,12 +87,12 @@ panderOptions('table.continues',.oldopt00);
 #' 
 #' Predictors
 # Uncomment the below line after putting in the actual predictor column names
-# from your dat00
-#predictorvars <- c('FOO','BAR','BAZ','BAT');
+# from your dat0
+predictorvars <- c('time','edema','stage');
 #' Outcomes
 # Uncomment the below line after putting in the actual outcome column names
 # from your dat00
-#outcomevars <- c('BAN','BAX');
+#outcomevars <- c('time','edema');
 #' All analysis-ready variables
 # Uncomment the below line after predictorvars and outcomevars already exist
 #mainvars <- c(outcomevars, predictorvars);
