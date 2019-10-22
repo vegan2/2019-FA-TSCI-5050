@@ -4,57 +4,38 @@
 #' date: "09/30/2019"
 #' ---
 #' 
-#+ message=F,echo=F
+#+ init, message=FALSE,echo=FALSE
 # init -----
 if(interactive()){
   try(source('https://raw.githubusercontent.com/bokov/UT-Template/master/git_setup.R'));
 };
 
 # set to > 0 for verbose initialization
-debug <- 0;
-
-# vector of additional packages to install, if needed. If none needed, should be
-# an empty string
-packages <- c('GGally','tableone','pander');
-
+.debug <- 0;
+# additional packages to install, if needed. If none needed, should be: ''
+.projpackages <- c('GGally','tableone','pander')
 # name of this script
 .currentscript <- "data_characterization.R"; 
-
-# vector of other scripts which need to run before this one. If none needed, 
-# should be an empty string
+# name of this script
+.currentscript <- "data_characterization.R"; 
+# other scripts which need to run before this one. If none needed, shoule be: ''
 .deps <- c( 'dictionary.R' ); 
 
 # load stuff ----
 # load project-wide settings, including your personalized config.R
-if(debug>0) source('./scripts/global.R',chdir=T) else {
+if(.debug>0) source('./scripts/global.R',chdir=T) else {
   .junk<-capture.output(source('./scripts/global.R',chdir=T,echo=F))};
-# load any additional packages needed by just this script
-if(length(packages) > 1 || !identical(packages,'')) instrequire(packages);
-# start logging
-tself(scriptname=.currentscript);
 
-# Use the workdir
-.workdir <- getwd();
-# run scripts on which this one depends, if any that have not been cached yet
-.loadedobjects <- load_deps(.deps,cachedir = .workdir);
-
-# which files are here before anything new is created by this script
-.origfiles <- ls(all=T);
-
-#+ echo=F
-#############################################################
+#+ startcode, echo=F, message=FALSE
+#===========================================================#
 # Your code goes below, content provided only as an example #
-#############################################################
-
+#===========================================================#
 #' ### Data Dictionary
 #' 
 #' Quality control, descriptive statistics, etc.
 
-#+ echo=F
-map0 <- autoread ('varmap.csv');
-dct0$column <- make.unique(unlist(submulti(dct0$column,map0,method = 'startsends')));
-names(dat00) <- dct0$column;
-set.seed(project_seed);
+#+ characterization, echo=F, message=FALSE
+# characterization ----
 #' 
 #' * Q: What does the command `nrow()` do?
 #'     * A: 
@@ -72,10 +53,12 @@ set.seed(project_seed);
 #'          
 #'          
 #' 
+discretevars<-c('edema','stage')
+for(xx in discretevars) dat00[[xx]]<-ordered(dat00[[xx]])
+set.seed(project_seed);
 dat01 <- dat00[sample(nrow(dat00), nrow(dat00)/2),];
-# characterization ----
 set.caption('Data Dictionary');
-set.alignment(row.names='right')
+set.alignment(row.names='right');
 .oldopt00 <- panderOptions('table.continues');
 panderOptions('table.continues','Data Dictionary (continued)');
 #  render the Data Dictionary table
@@ -86,60 +69,70 @@ panderOptions('table.continues',.oldopt00);
 #' ### Select predictor and outcome variables (step 8)
 #' 
 #' Predictors
-# Uncomment the below line after putting in the actual predictor column names
-# from your dat0
 predictorvars <- c('time','edema','stage');
 #' Outcomes
-# Uncomment the below line after putting in the actual outcome column names
-# from your dat00
-#outcomevars <- c('time','edema');
+outcomevars <- c('trig','protime');
 #' All analysis-ready variables
-# Uncomment the below line after predictorvars and outcomevars already exist
-#mainvars <- c(outcomevars, predictorvars);
-#' ### Scatterplot matrix (step 10)
+mainvars <- c(outcomevars, predictorvars);
+#' ### Scatterplot matrix)
 #' 
 #' To explore pairwise relationships between all variables of interest.
-#+ ggpairs_plot
-# Uncomment the below after mainvars already exists and you have chosen a 
-# discrete variable to take the place of VAR1 (note that you don't quote that
-# one)
-#ggpairs(dat00[,mainvars],mapping=aes(color=VAR1));
+#+ ggpairs_plot, message=FALSE, warning=FALSE
+ggpairs(dat01[,mainvars])
+
 #' ### Cohort Characterization (step 10)
 #' 
 #' To explore possible covariates
-# Uncomment the below code after mainvars exists and you have chosen a discrete
-# variable to take the place of VAR1 (this time you do quote it)
-#
-#pander(print(CreateTableOne(
-#  vars = setdiff(mainvars,'VAR1'),strata='VAR1',data = dat00
-#  , includeNA = T), printToggle=F), caption='Group Characterization');
+#' * Q: Which function 'owns' the argument `caption`? What value does that 
+#'      argument pass to that function?
+#'     * A: 
+#'          
+#'          
+#' * Q: Which function 'owns' the argument `printToggle`? What value does that 
+#'      argument pass to that function?
+#'     * A: 
+#'          
+#'          
+#' * Q: Which function 'owns' the argument `vars`? We can see that the value
+#'      this argument passes comes from the variable `mainvars`... so what is
+#'      the actual value that ends up getting passed to the function?
+#'     * A: Create Table 1
+#'          
+#'          
+#' * Q: What is the _very first_ argument of `print()` in the expression below?
+#'      (copy-paste only that argument into your answer without including 
+#'      anything extra)
+#'     * A: 
+#'          
+#'          
+pander(print(CreateTableOne(vars = mainvars, data = dat01, includeNA = TRUE)
+             , printToggle=FALSE)
+       , caption='Cohort Characterization');
+
+# pander(print(CreateTableOne(vars = mainvars, data = dat01, includeNA = TRUE), printToggle=FALSE), caption='Cohort Characterization');
+# 
+# aa <- CreateTableOne(vars = mainvars, data = dat01, includeNA = TRUE);
+# bb <- print(aa,printToggle=FALSE);
+# pander(bb,caption='Cohort Characterization');
 
 #' ### Data Analysis
 #' 
 #' Fitting the actual statistical models.
-#+ echo=F
+#+ echo=F, message=FALSE
 # analysis ----
 
-#+ echo=F
-#############################################################
-# End of your code, start of boilerplate code               #
-#############################################################
+#+ echo=FALSE,warning=FALSE,message=FALSE
+#===========================================================#
+##### End of your code, start of boilerplate code ###########
+#===========================================================#
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE,message=FALSE);
 
-# save out with audit trail ----
-# Saving original file-list so we don't keep exporting functions and 
-# environment variables to other scripts. Could also replace .origfiles
-# with the expression c(.origfiles,.loadedobjects) and then, nothing
-# get inherited from previous files, only the stuff created in this 
-# script gets saved. If this doesn't make sense, don't worry about it.
+# save out with audit trail 
 message('About to tsave');
 tsave(file=paste0(.currentscript,'.rdata'),list=setdiff(ls(),.origfiles)
-      ,verbose=F);
+      ,verbose=FALSE);
 message('Done tsaving');
 
 #' ### Audit Trail
-#+ echo=F
 .wt <- walktrail();
-pander(.wt[order(.wt$sequence),-5],split.tables=Inf,justify='left',missing=''
-       ,row.names=F);
-#+ echo=F,eval=F
 c()
